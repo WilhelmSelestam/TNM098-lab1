@@ -1,8 +1,6 @@
 import fs from "fs"
 import path from "path"
 import ScatterPlot from "./ScatterPlot"
-import { dbscan } from "./dbscan"
-import { clustersDbscan } from "@turf/clusters-dbscan"
 
 export interface EyeFixationData {
   timestamp: number
@@ -11,6 +9,7 @@ export interface EyeFixationData {
   gazePointIndex: number
   x: number
   y: number
+  clusterLabel: number
 }
 
 export default async function Home() {
@@ -18,7 +17,7 @@ export default async function Home() {
 
   try {
     const fileContents = fs.readFileSync(
-      "C:/Skola/TNM098-Avancerad_visuell_dataanalys/lab1/eye-tracking/public/EyeTrack-raw.tsv",
+      "C:/Skola/TNM098-Avancerad_visuell_dataanalys/lab1/eye-tracking/public/EyeTrack-clustered.tsv",
       "utf-8",
     )
 
@@ -34,6 +33,7 @@ export default async function Home() {
           gazePointIndex: +d[3],
           x: +d[4],
           y: +d[5],
+          clusterLabel: +d[7],
         }
       })
       .filter((d) => !isNaN(d.x) && !isNaN(d.y))
@@ -41,23 +41,17 @@ export default async function Home() {
     console.error("Failed: ", error)
   }
 
-  const dataset = parsedData.map((row) => {
-    const x = row.x
-    const y = row.y
+  // const dataset = parsedData.map((row) => {
+  //   const x = row.x
+  //   const y = row.y
+  //   const clusterLabel = row.clusterLabel
 
-    return [x, y]
-  })
-
-  // const result = dbscan(dataset)
-
-  // var maxDistance = 100
-  // var result = clustersDbscan(dataset, maxDistance)
-
-  // console.log("hello ", result)
+  //   return [x, y, clusterLabel]
+  // })
 
   return (
     <main className="min-h-screen bg-amber-50 text-slate-800 p-8 md:p-12">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="max-w-10000 mx-auto">
         <div className="space-y-4">
           {parsedData.length > 0 ? (
             <ScatterPlot data={parsedData} />

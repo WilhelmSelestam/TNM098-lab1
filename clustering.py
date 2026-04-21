@@ -21,6 +21,58 @@ plt.colorbar(scatter, label='Cluster Label (-1 = Noise)')
 plt.gca().invert_yaxis() 
 plt.show()
 
+# --- 1. Förbered data (samma som tidigare) ---
+df['ClusterLabel'] = labels
+df_filtered = df[df['ClusterLabel'] != -1].copy()
+
+# Skapa sekvensen (ta bort upprepningar efter varandra)
+s = df_filtered['ClusterLabel']
+sequence = s[s != s.shift()].tolist()
+
+# Skapa transitions-matrisen med Pandas
+if len(sequence) > 1:
+    # Skapa par av (från, till)
+    from_list = sequence[:-1]
+    to_list = sequence[1:]
+    
+    # Skapa matrisen
+    matrix = pd.crosstab(pd.Series(from_list, name='Från'), 
+                         pd.Series(to_list, name='Till'))
+    
+    output_filepath = 'C:/Skola/TNM098-Avancerad_visuell_dataanalys/lab1/eye-tracking/public/trans_matrix.tsv'
+    matrix.to_csv(output_filepath, sep='\t', index=False, header=False)
+
+
+    # --- 2. Visualisera med enbart Matplotlib ---
+    plt.figure(figsize=(8, 6))
+    
+    # imshow ritar ut matrisen som en bild
+    im = plt.imshow(matrix, cmap='YlGnBu', aspect='auto')
+    
+    # Lägg till färgskala
+    plt.colorbar(im, label='Antal transitions')
+
+    # Fixa axlar (vi vill ha kluster-ID som labels)
+    plt.xticks(range(len(matrix.columns)), matrix.columns)
+    plt.yticks(range(len(matrix.index)), matrix.index)
+    
+    plt.xlabel('Till AOI (Kluster)')
+    plt.ylabel('Från AOI (Kluster)')
+    plt.title('Transitions mellan Areas of Interest')
+
+    # Lägg till siffror i rutorna manuellt
+    for i in range(len(matrix.index)):
+        for j in range(len(matrix.columns)):
+            plt.text(j, i, matrix.iloc[i, j], 
+                     ha="center", va="center", color="black")
+
+    plt.show()
+
+    print("\nSekvens av besökta AOIs:")
+    print(sequence)
+else:
+    print("Inte tillräckligt med data för att beräkna transitions.")
+
 # df['ClusterLabel'] = clustering.labels_
 
 # output_filepath = 'C:/Skola/TNM098-Avancerad_visuell_dataanalys/lab1/eye-tracking/public/EyeTrack-clustered.tsv'
